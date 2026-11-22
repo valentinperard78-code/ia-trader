@@ -1,0 +1,22 @@
+{
+  "nom_du_bot": "IA Trader",
+  "mode": "simulation",
+  "budget_eur": 100,
+  "objectif_eur": 200,
+
+  "arret_urgence": false,
+  "pause_manuelle": false,
+  "reset_id": 1,
+
+  "positions_max": 3,
+  "perte_max_avant_arret_pct": 30,
+  "frais_pct": 0.40,
+  "glissement_pct": 0.10,
+  "ordre_min_eur": 5,
+
+  "unite_bougies_minutes": 240,
+  "nb_candidats_suivis": 20,
+  "pause_apres_alerte_heures": 2,
+
+  "github_repo": "valentinperard78-code/ia-trader"
+}

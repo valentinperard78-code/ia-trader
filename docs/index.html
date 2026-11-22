@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>IA Trader</title>
+<style>
+:root{--bg:#0b0d12;--card:#151821;--card2:#1c2030;--line:#262b3b;--txt:#eef1f7;--mut:#8a91a6;--green:#22e07a;--red:#ff4d5e;--orange:#ff8a3d;--yellow:#ffd23f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;padding:calc(env(safe-area-inset-top) + 12px) 14px calc(env(safe-area-inset-bottom) + 86px);-webkit-font-smoothing:antialiased}
+h1{font-size:15px;font-weight:700;letter-spacing:.2px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:#12321f;color:var(--green)}
+.pill.pause{background:#3a2a12;color:var(--orange)}.pill.stop{background:#3a1218;color:var(--red)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.hero{background:linear-gradient(135deg,#ff5a36,#ff2d55 60%,#c2185b);border:none;color:#fff;position:relative;overflow:hidden}
+.hero .lbl{font-size:12px;opacity:.85}.hero .big{font-size:38px;font-weight:800;margin:4px 0;letter-spacing:-1px}
+.hero .sub{font-size:12px;opacity:.9}.hero .chip{display:inline-block;background:rgba(0,0,0,.25);border-radius:8px;padding:3px 7px;font-size:11px;font-weight:700;margin-right:6px}
+.hero .bot{position:absolute;right:14px;top:14px;width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,.25);display:grid;place-items:center;font-size:22px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mut{color:var(--mut);font-size:12px}.g{color:var(--green)}.r{color:var(--red)}
+.ttl{font-size:13px;font-weight:700;margin-bottom:10px}
+.bar{height:8px;background:var(--card2);border-radius:9px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:var(--green);border-radius:9px}
+.item{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.item:first-of-type{border-top:none}
+.ico{width:34px;height:34px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.grow{flex:1;min-width:0}.name{font-size:14px;font-weight:600}.small{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.right{text-align:right;font-size:13px;font-weight:700}
+.tag{font-size:10px;font-weight:800;padding:3px 7px;border-radius:6px}.tag.b{background:#12321f;color:var(--green)}.tag.s{background:#3a1218;color:var(--red)}.tag.p{background:#3a2a12;color:var(--orange)}.tag.i{background:var(--card2);color:var(--mut)}.tag.u{background:var(--red);color:#fff}
+.news{padding:10px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.35}.news:first-of-type{border-top:none}.news a{color:var(--txt);text-decoration:none}.news.al{border-left:3px solid var(--red);padding-left:9px}
+.gauge{display:flex;flex-direction:column;align-items:center}
+.whl{display:flex;gap:10px;align-items:center;padding:8px 0}.wbar{flex:1;height:8px;border-radius:9px;background:var(--red);overflow:hidden}.wbar i{display:block;height:100%;background:var(--green)}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(11,13,18,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(env(safe-area-inset-bottom) + 8px)}
+nav button{flex:1;background:none;border:none;color:var(--mut);font-size:10px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
+nav button.on{color:var(--green)}nav svg{width:22px;height:22px}
+.tab{display:none}.tab.on{display:block}
+.btn{display:block;text-align:center;padding:13px;border-radius:14px;font-weight:800;font-size:14px;text-decoration:none;margin-top:10px}
+.btn.red{background:var(--red);color:#fff}.btn.gr{background:var(--green);color:#06210f}.btn.gh{background:var(--card2);color:var(--txt)}
+.seg{display:flex;gap:6px;margin-top:8px}.seg span{flex:1;text-align:center;padding:8px 0;border-radius:10px;background:var(--card2);font-size:12px;font-weight:700}.seg span.on{background:var(--orange);color:#fff}
+.err{color:var(--orange);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{background:var(--card2);border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="top"><h1 id="botname">IA Trader</h1><span class="pill" id="status">…</span></div>
+
+<!-- ACCUEIL -->
+<section class="tab on" id="t-home">
+  <div class="card hero">
+    <div class="bot">🤖</div>
+    <div class="lbl">Capital du bot <span id="mode"></span></div>
+    <div class="big" id="equity">—</div>
+    <div class="sub"><span class="chip" id="pnl">—</span><span id="day"></span></div>
+  </div>
+  <div class="card">
+    <div class="row"><span class="ttl" style="margin:0">Objectif</span><span class="mut" id="goaltxt"></span></div>
+    <div class="bar"><i id="goalbar" style="width:0"></i></div>
+  </div>
+  <div class="card">
+    <div class="row"><span class="ttl">Revenus dans le temps</span>
+      <div class="seg" style="margin:0;width:150px" id="range"><span data-h="24" class="on">24 h</span><span data-h="168">7 j</span><span data-h="0">Tout</span></div></div>
+    <svg id="chart" viewBox="0 0 340 170" width="100%" style="margin-top:8px"></svg>
+  </div>
+  <div class="card"><div class="ttl">Activité du bot</div><div id="events"></div></div>
+</section>
+
+<!-- POSITIONS -->
+<section class="tab" id="t-pos">
+  <div class="card"><div class="row"><span class="ttl">Achats en cours</span><span class="mut" id="cash"></span></div><div id="positions"></div></div>
+  <div class="card"><div class="ttl">Ventes</div><div id="trades"></div></div>
+  <div class="card"><div class="row"><span class="ttl">Statistiques</span></div><div id="stats"></div></div>
+</section>
+
+<!-- ACTUS -->
+<section class="tab" id="t-news">
+  <div class="card"><div class="ttl">État du marché</div>
+    <div class="gauge"><svg id="fng" viewBox="0 0 220 130" width="230"></svg>
+      <div class="mut" id="fnglbl"></div></div>
+    <div class="mut" id="pauseinfo" style="margin-top:10px"></div>
+  </div>
+  <div class="card"><div class="row"><span class="ttl">Baleines</span><span class="mut" id="whaleinfo"></span></div><div id="whales"></div></div>
+  <div class="card"><div class="ttl">Posts de Trump</div><div id="trump"></div></div>
+  <div class="card"><div class="row"><span class="ttl">Actus crypto</span><span class="mut" id="newsinfo"></span></div><div id="news"></div></div>
+</section>
+
+<!-- SCAN -->
+<section class="tab" id="t-scan">
+  <div class="card" style="text-align:center">
+    <div class="mut">Cryptos scannées</div>
+    <div style="font-size:54px;font-weight:800" id="scanned">—</div>
+    <div class="mut" id="scaninfo"></div>
+  </div>
+  <div class="card"><div class="ttl">Stratégies</div>
+    <div class="item"><div class="ico" style="background:#3a1a2a">↗</div><div class="grow"><div class="name">Départ après calme</div><div class="small">Le prix dort, puis casse vers le haut avec du volume</div></div><b id="n-calme"></b></div>
+    <div class="item"><div class="ico" style="background:#3a2a12">≋</div><div class="grow"><div class="name">Suivi de tendance</div><div class="small">Tendance haussière confirmée, achat dans les creux</div></div><b id="n-tendance"></b></div>
+  </div>
+  <div class="card"><div class="ttl">Cryptos retenues (testées sur 2 ans)</div><div id="selected"></div></div>
+</section>
+
+<!-- REGLAGES -->
+<section class="tab" id="t-set">
+  <div class="card"><div class="ttl">Budget du bot</div>
+    <div style="font-size:26px;font-weight:800" id="budget"></div>
+    <div class="mut" id="setinfo" style="margin-top:6px"></div>
+    <a class="btn gh" id="editcfg" target="_blank">Modifier les réglages (config.json)</a>
+  </div>
+  <div class="card"><div class="ttl" style="color:var(--red)">Arrêt d'urgence</div>
+    <div class="mut">Automatique si le capital perd <b id="ddpct"></b> %. Pour le déclencher à la main : ouvre les réglages, mets <code>"arret_urgence": true</code>, puis valide (« Commit »). Le bot vend tout à son prochain passage (15 min max).</div>
+    <a class="btn red" id="stopbtn" target="_blank">ARRÊT D'URGENCE</a>
+  </div>
+  <div class="card"><div class="ttl">Lancer à la main</div>
+    <a class="btn gr" id="runbtn" target="_blank">Faire tourner le bot maintenant</a>
+    <a class="btn gh" id="scanbtn" target="_blank">Relancer le scan des cryptos</a>
+  </div>
+  <div class="card mut" id="updated"></div>
+</section>
+
+<nav>
+  <button class="on" data-t="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Accueil</button>
+  <button data-t="pos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M8 6V4h8v2"/></svg>Portefeuille</button>
+  <button data-t="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5"/></svg>Actus</button>
+  <button data-t="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Scan</button>
+  <button data-t="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.8 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.8H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10.2 3V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.8 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.8H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Réglages</button>
+</nav>
+
+<script>
+const $ = id => document.getElementById(id);
+const eur = (x, d=2) => (x ?? 0).toLocaleString('fr-FR', {minimumFractionDigits:d, maximumFractionDigits:d}) + ' €';
+const px = x => eur(x, x >= 1 ? 2 : 6);
+const sign = x => (x >= 0 ? '+' : '') + eur(x);
+const cls = x => x >= 0 ? 'g' : 'r';
+const hm = t => new Date(t*1000).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+const dm = t => new Date(t*1000).toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+const ago = t => { const s = Date.now()/1000 - t; return s < 3600 ? `il y a ${Math.max(1,Math.round(s/60))} min` : s < 86400 ? `il y a ${Math.round(s/3600)} h` : dm(t); };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const STRAT = {calme:'Départ après calme', tendance:'Suivi de tendance'};
+let S = null, SCAN = null, RANGE = 24;
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.id === 't-' + b.dataset.t));
+  window.scrollTo(0, 0);
+});
+document.querySelectorAll('#range span').forEach(s => s.onclick = () => {
+  document.querySelectorAll('#range span').forEach(x => x.classList.toggle('on', x === s));
+  RANGE = +s.dataset.h; chart();
+});
+
+function chart() {
+  const svg = $('chart'); if (!S) return;
+  let pts = S.equity_history;
+  if (RANGE) { const lim = Date.now()/1000 - RANGE*3600; const f = pts.filter(p => p[0] >= lim); pts = f.length > 1 ? f : pts.slice(-2); }
+  const W = 340, H = 170, L = 6, R = 52, T = 10, B = 22;
+  const budget = S.budget, ys = pts.map(p => p[1]).concat([budget]);
+  let lo = Math.min(...ys), hi = Math.max(...ys); const pad = Math.max((hi - lo) * .15, budget * .02); lo -= pad; hi += pad;
+  const t0 = pts[0][0], t1 = pts[pts.length-1][0] || t0 + 1;
+  const X = t => L + (W-L-R) * (t1 === t0 ? 1 : (t - t0) / (t1 - t0)), Y = v => T + (H-T-B) * (1 - (v - lo) / (hi - lo));
+  const d = pts.map((p,i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ');
+  const last = pts[pts.length-1][1], col = last >= budget ? 'var(--green)' : 'var(--red)';
+  const marks = (S.trades||[]).concat(S.positions||[]).flatMap(x => {
+    const out = [];
+    if (x.entry_time >= t0) out.push(`<circle cx="${X(x.entry_time)}" cy="${Y(interp(pts,x.entry_time))}" r="3.5" fill="var(--green)"/>`);
+    if (x.exit_time && x.exit_time >= t0) out.push(`<circle cx="${X(x.exit_time)}" cy="${Y(interp(pts,x.exit_time))}" r="3.5" fill="var(--red)"/>`);
+    return out; }).join('');
+  svg.innerHTML = `
+    <line x1="${L}" x2="${W-R}" y1="${Y(budget)}" y2="${Y(budget)}" stroke="#3a4157" stroke-dasharray="4 4"/>
+    <text x="${W-R+4}" y="${Y(budget)+4}" fill="var(--mut)" font-size="10">${eur(budget,0)}</text>
+    <path d="${d} L${X(t1)} ${H-B} L${X(t0)} ${H-B} Z" fill="${col}" opacity=".08"/>
+    <path d="${d}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round"/>
+    ${marks}
+    <circle cx="${X(t1)}" cy="${Y(last)}" r="4.5" fill="${col}"/>
+    <text x="${W-R+4}" y="${Y(last)+4}" fill="${col}" font-size="11" font-weight="700">${eur(last)}</text>
+    <text x="${L}" y="${H-5}" fill="var(--mut)" font-size="10">${RANGE===24?hm(t0):dm(t0)}</text>
+    <text x="${W-R}" y="${H-5}" fill="var(--mut)" font-size="10" text-anchor="end">${RANGE===24?hm(t1):dm(t1)}</text>`;
+}
+function interp(pts, t) { let best = pts[0]; for (const p of pts) if (Math.abs(p[0]-t) < Math.abs(best[0]-t)) best = p; return best[1]; }
+
+function gauge(v, lbl) {
+  const cx = 110, cy = 110, r = 88, segs = ['#ff4d5e','#ff8a3d','#ffd23f','#9be15d','#22e07a'];
+  let arcs = '';
+  segs.forEach((c,i) => { const a0 = Math.PI*(1 - i/5) - .03, a1 = Math.PI*(1 - (i+1)/5) + .03;
+    arcs += `<path d="M${cx+r*Math.cos(a0)} ${cy-r*Math.sin(a0)} A${r} ${r} 0 0 1 ${cx+r*Math.cos(a1)} ${cy-r*Math.sin(a1)}" stroke="${c}" stroke-width="16" fill="none" stroke-linecap="round"/>`; });
+  const a = Math.PI*(1 - v/100), col = segs[Math.min(4, Math.floor(v/20))];
+  $('fng').innerHTML = arcs + `<line x1="${cx}" y1="${cy}" x2="${cx+68*Math.cos(a)}" y2="${cy-68*Math.sin(a)}" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="7" fill="#fff"/>
+    <text x="${cx}" y="${cy-28}" text-anchor="middle" fill="${col}" font-size="30" font-weight="800">${v}/100</text>`;
+  $('fnglbl').innerHTML = `<b style="color:${col};text-transform:uppercase">${esc(lbl)}</b> · indice Peur &amp; Avidité`;
+}
+
+function render() {
+  const s = S, c = s.config || {}, repo = c.github_repo || '';
+  $('botname').textContent = c.nom_du_bot || 'IA Trader';
+  const st = $('status'); st.textContent = '● ' + s.status; st.className = 'pill' + (s.status === 'en pause' ? ' pause' : s.status === "arrêt d'urgence" ? ' stop' : '');
+  $('mode').textContent = c.mode === 'simulation' ? '· simulation' : '';
+  $('equity').textContent = eur(s.equity);
+  $('pnl').textContent = `${sign(s.pnl)} (${s.pnl_pct >= 0 ? '+' : ''}${s.pnl_pct.toLocaleString('fr-FR')} %)`;
+  $('day').textContent = `JOUR ${s.day} · départ ${eur(s.budget,0)}`;
+  const goal = c.objectif_eur || 200, prog = Math.max(0, Math.min(100, (s.equity - s.budget) / (goal - s.budget) * 100));
+  $('goaltxt').textContent = `${eur(s.equity,0)} / ${eur(goal,0)}`; $('goalbar').style.width = prog + '%';
+  chart();
+  const T = {achat:['ACHAT','b'], vente:['VENTE','s'], pause:['PAUSE','p'], urgence:['URGENCE','u'], info:['INFO','i']};
+  $('events').innerHTML = (s.events||[]).slice(0, 25).map(e => `<div class="item"><span class="tag ${T[e.type]?.[1]||'i'}">${T[e.type]?.[0]||'INFO'}</span><div class="grow" style="font-size:13px">${esc(e.text)}<div class="small">${dm(e.t)} · ${hm(e.t)}</div></div></div>`).join('') || '<div class="mut">Rien pour l\'instant.</div>';
+
+  $('cash').textContent = 'Liquidités : ' + eur(s.cash);
+  $('positions').innerHTML = (s.positions||[]).map(p => `<div class="item"><div class="ico">${esc(p.coin.slice(0,4))}</div><div class="grow"><div class="name">${esc(p.coin)}</div><div class="small">${STRAT[p.strategy]} · acheté ${dm(p.entry_time)} à ${hm(p.entry_time)} · ${px(p.entry_price)}</div><div class="small">Stop : ${px(p.stop)}</div></div><div class="right">${eur(p.value)}<div class="${cls(p.pnl)}" style="font-size:12px">${sign(p.pnl)}</div></div></div>`).join('') || '<div class="mut">Aucune position : le bot attend un signal.</div>';
+  $('trades').innerHTML = (s.trades||[]).slice(0, 40).map(t => `<div class="item"><div class="ico">${esc(t.coin.slice(0,4))}</div><div class="grow"><div class="name">${esc(t.coin)} <span class="mut">· ${esc(t.reason)}</span></div><div class="small">${px(t.entry_price)} → ${px(t.exit_price)} · revendu ${dm(t.exit_time)} à ${hm(t.exit_time)}</div></div><div class="right ${cls(t.pnl)}">${sign(t.pnl)}<div style="font-size:11px">${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct} %</div></div></div>`).join('') || '<div class="mut">Pas encore de vente.</div>';
+  const tr = s.trades || [], w = tr.filter(t => t.pnl > 0);
+  $('stats').innerHTML = `<div class="item"><div class="grow">Ventes gagnantes</div><b>${tr.length ? Math.round(w.length/tr.length*100) : 0} % (${w.length}/${tr.length})</b></div>
+    <div class="item"><div class="grow">Meilleure vente</div><b class="g">${tr.length ? sign(Math.max(...tr.map(t=>t.pnl))) : '—'}</b></div>
+    <div class="item"><div class="grow">Pire vente</div><b class="r">${tr.length ? sign(Math.min(...tr.map(t=>t.pnl))) : '—'}</b></div>
+    <div class="item"><div class="grow">Frais simulés par ordre</div><b>${(c.frais_pct ?? 0.4).toLocaleString('fr-FR')} %</b></div>`;
+
+  const m = s.market || {};
+  if (m.fng) gauge(m.fng.value, m.fng.label);
+  $('pauseinfo').innerHTML = s.pause_until > Date.now()/1000 ? `⏸️ Achats en pause jusqu'à ${hm(s.pause_until)} — ${esc(s.pause_reason)}` : 'Achats autorisés.';
+  const wh = m.whales || {}, coins = Object.entries(wh.coins || {}).sort((a,b) => (b[1].long+b[1].short) - (a[1].long+a[1].short)).slice(0, 8);
+  $('whaleinfo').textContent = wh.traders ? `${wh.traders} meilleurs traders Hyperliquid · ${ago(wh.updated)}` : '';
+  $('whales').innerHTML = coins.map(([k,v]) => { const pct = Math.round(v.long/(v.long+v.short)*100);
+    return `<div class="whl"><div style="width:58px;font-weight:700;font-size:13px">${esc(k)}</div><div class="wbar"><i style="width:${pct}%"></i></div><div style="width:74px;text-align:right;font-size:12px" class="${pct>=50?'g':'r'}">${pct>=50?pct+' % hausse':(100-pct)+' % baisse'}</div></div>`; }).join('') || '<div class="mut">En attente des données.</div>';
+  $('trump').innerHTML = (m.trump||[]).slice(0, 5).map(p => `<div class="news ${p.market?'al':''}"><a href="${esc(p.link)}" target="_blank">${esc(p.title)}</a><div class="small">${ago(p.t)}${p.market?' · touche le marché':''}</div></div>`).join('') || '<div class="mut">Flux indisponible pour l\'instant.</div>';
+  $('newsinfo').textContent = m.news_sources_ok != null ? `${m.news_sources_ok}/7 sources` : '';
+  $('news').innerHTML = (m.news||[]).slice(0, 25).map(n => `<div class="news ${n.alarm?'al':''}"><a href="${esc(n.link)}" target="_blank">${esc(n.title)}</a><div class="small">${esc(n.source)} · ${ago(n.t)}</div></div>`).join('');
+
+  $('budget').textContent = eur(s.budget, 0) + (c.mode === 'simulation' ? ' (fictifs)' : '');
+  $('setinfo').textContent = `Objectif ${eur(goal,0)} · ${c.positions_max} positions max · arrêt auto à −${c.perte_max_avant_arret_pct} %`;
+  $('ddpct').textContent = c.perte_max_avant_arret_pct;
+  const gh = `https://github.com/${repo}`;
+  $('editcfg').href = $('stopbtn').href = `${gh}/edit/main/config.json`;
+  $('runbtn').href = `${gh}/actions/workflows/bot.yml`; $('scanbtn').href = `${gh}/actions/workflows/scan.yml`;
+  $('updated').textContent = `Dernier passage du bot : ${dm(s.updated_at)} à ${hm(s.updated_at)} (toutes les 15 min environ).`;
+}
+
+function renderScan() {
+  if (!SCAN) { $('scaninfo').textContent = 'Premier scan pas encore lancé.'; return; }
+  $('scanned').textContent = SCAN.scanned;
+  $('scaninfo').textContent = `sur ${SCAN.total_pairs} paires en euros · ${dm(SCAN.updated)} · ${SCAN.selected.length} retenues`;
+  ['calme','tendance'].forEach(k => $('n-'+k).textContent = SCAN.selected.filter(x => x.strategy === k).length);
+  $('selected').innerHTML = SCAN.selected.slice(0, 30).map(x => `<div class="item"><div class="ico">${esc(x.coin.slice(0,4))}</div><div class="grow"><div class="name">${esc(x.coin)}</div><div class="small">${STRAT[x.strategy]} · ${x.detail['2ans'].trades} trades · ${x.detail['2ans'].win_rate} % gagnants · pire baisse −${x.detail['2ans'].max_dd_pct} %</div></div><div class="right g">+${x.detail['2ans'].return_pct} %<div class="mut" style="font-size:10px">sur 2 ans</div></div></div>`).join('') || '<div class="mut">Aucune crypto n\'a passé le test cette semaine : le bot reste prudent.</div>';
+}
+
+async function load() {
+  try {
+    const r = await fetch('data/state.json?' + Date.now()); if (!r.ok) throw 0;
+    S = await r.json(); render();
+  } catch (e) { $('events').innerHTML = '<div class="err">Le bot n\'a pas encore tourné. Lance-le une première fois depuis GitHub (onglet Actions).</div>'; }
+  try { const r = await fetch('data/scan.json?' + Date.now()); if (r.ok) { SCAN = await r.json(); } } catch (e) {}
+  renderScan();
+}
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>
